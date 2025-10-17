@@ -40,28 +40,62 @@ Build single‑file or multi‑file projects, export them, and keep a running co
 | **Settings** | Configure Ollama URL, file mode, project name, and a custom system prompt. |
 | **Export** | Download the project as a single HTML file or separate files. |
 | **No Build Required** | Pure HTML/JS/CSS – open `index.html` in any modern browser. |
+|CORS‑free	All API requests are routed through a local Python proxy that adds the necessary CORS headers. |
 
 ---
 
-## Architecture
+OllamaWebBuilder
+A lightweight, browser‑only web application that lets you chat with an AI model (via Ollama) to generate, edit, and preview web‑app code in real time.
+Build single‑file or multi‑file projects, export them, and keep a running context so the AI can keep track of your design decisions.
 
-```
-┌─────────────────────┐
-│      Browser UI     │
-│  (index.html + js)  │
-└───────┬──────────────┘
-        │
-        ▼
-┌─────────────────────┐
-│   Ollama Server     │
-│  (REST API)         │
-└─────────────────────┘
-```
+Demo – See the app in action on the live demo page (if hosted) or run it locally by opening index.html in your browser.
 
-* The UI sends POST requests to the Ollama API (`/api/chat/completions`).
-* The API returns streamed responses that are appended to the chat window.
-* Code changes are automatically rendered in the preview iframe.
-* Settings and context are stored in the browser’s `localStorage` for persistence.
+Table of Contents
+Features
+Architecture
+Prerequisites
+Running the Local Proxy Server
+Running the App
+Using the App
+Exporting Projects
+Development
+Contributing
+License
+Acknowledgements
+Features
+FEATURE	DESCRIPTION
+Model selection	Choose any Ollama model exposed on your local machine.
+Chat‑based code generation	Ask the model to create, modify, or explain code snippets.
+Project context	Persist a conversation history that the model can reference.
+File management	Create, edit, delete, and rename files in a virtual project tree.
+Live preview	Render the current HTML/CSS/JS in an embedded iframe.
+Export	Download the entire project as a ZIP archive.
+CORS‑free	All API requests are routed through a local Python proxy that adds the necessary CORS headers.
+Architecture
+
+
+Copy block
+
+
+┌───────────────────────┐
+│  Browser (index.html) │
+│  • UI (Vanilla JS)    │
+│  • api/proxy/generate │
+└─────────────┬─────────┘
+              │
+              ▼
+┌───────────────────────┐
+│  Local Python Proxy   │
+│  • http.server +      │
+│    socketserver       │
+│  • Adds CORS headers  │
+│  • Forwards to Ollama │
+└─────────────┬─────────┘
+              │
+              ▼
+┌───────────────────────┐
+│   (localhost:11434)   │
+└───────────────────────┘
 
 ---
 
@@ -71,6 +105,7 @@ Build single‑file or multi‑file projects, export them, and keep a running co
 |-------------|-----------------|
 | **Web Browser** | Chrome / Edge / Firefox (latest) |
 | **Ollama** | 0.1.0+ (any model you want to use) |
+| **Python**	3.8+	python3 --version |
 
 > **Tip** – Ollama can be installed locally with a single command:  
 > ```bash
@@ -80,8 +115,6 @@ Build single‑file or multi‑file projects, export them, and keep a running co
 ---
 
 ## Installation & Running
-
-The project is **static** – no build step is required.
 
 1. **Clone the repo**  
    ```bash
@@ -94,17 +127,16 @@ The project is **static** – no build step is required.
    ollama serve
    ```
 
-3. **Open the app**  
-   *Option 1 – Direct File*  
-   Open `index.html` in your browser (double‑click or `open index.html`).
-
-   *Option 2 – Local HTTP Server*  
+3. **Start your python server**
    ```bash
-   npx http-server .
-   ```
-   Then visit `http://localhost:8080` (or the port shown).
+   python cors_server.py
+    ```
+   The server will listen on port 8000 and expose the endpoint /api/proxy/generate.
 
-> **Note** – Because the app uses `fetch` to talk to `http://localhost:11434`, you must run it from a web server (or use the file protocol) for the API calls to work.
+4. **Open the app**  
+   Open `index.html` from localhost:8000/index.html.
+
+> **Note** – Because the app uses `fetch` to talk to `http://localhost:11434`, you must run it from a web server for the API calls to work.
 
 ---
 
