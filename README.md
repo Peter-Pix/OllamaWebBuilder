@@ -40,7 +40,7 @@ Build single‑file or multi‑file projects, export them, and keep a running co
 | **Settings** | Configure Ollama URL, file mode, project name, and a custom system prompt. |
 | **Export** | Download the project as a single HTML file or separate files. |
 | **No Build Required** | Pure HTML/JS/CSS – open `index.html` in any modern browser. |
-|CORS‑free	All API requests are routed through a local Python proxy that adds the necessary CORS headers. |
+| **CORS‑free** | All API requests are routed through a local Python proxy that adds the necessary CORS headers. |
 
 ---
 
