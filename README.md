@@ -1,33 +1,13 @@
 # Ollama Web Builder  
 
-A lightweight, browser‑only web application that lets you **chat with an AI model (via Ollama)** to generate, edit, and preview web‑app code in real time.  
+A lightweight, browser‑only web application. 
+
+**Chat with an AI model (via Ollama)** to generate, edit, and preview web‑app code in real time.  
+
 Build single‑file or multi‑file projects, export them, and keep a running context so the AI can keep track of your design decisions.
 
----
 
-## Table of Contents
 
-- [Features](#features)
-- [Architecture](#architecture)
-- [Prerequisites](#prerequisites)
-- [Installation & Running](#installation--running)
-- [Usage](#usage)
-  - [Chat Panel](#chat-panel)
-  - [Code Panel](#code-panel)
-  - [Preview Panel](#preview-panel)
-  - [Context Panel](#context-panel)
-  - [Settings Panel](#settings-panel)
-- [Configuration](#configuration)
-  - [Ollama Server](#ollama-server)
-  - [File Mode](#file-mode)
-  - [Project Name & System Prompt](#project-name--system-prompt)
-- [Exporting Projects](#exporting-projects)
-- [How It Works](#how-it-works)
-- [Contribution Guidelines](#contribution-guidelines)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
-
----
 
 ## Features
 
@@ -42,62 +22,8 @@ Build single‑file or multi‑file projects, export them, and keep a running co
 | **No Build Required** | Pure HTML/JS/CSS – open `index.html` in any modern browser. |
 | **CORS‑free** | All API requests are routed through a local Python proxy that adds the necessary CORS headers. |
 
----
-
-OllamaWebBuilder
-A lightweight, browser‑only web application that lets you chat with an AI model (via Ollama) to generate, edit, and preview web‑app code in real time.
-Build single‑file or multi‑file projects, export them, and keep a running context so the AI can keep track of your design decisions.
-
-Demo – See the app in action on the live demo page (if hosted) or run it locally by opening index.html in your browser.
-
-Table of Contents
-Features
-Architecture
-Prerequisites
-Running the Local Proxy Server
-Running the App
-Using the App
-Exporting Projects
-Development
-Contributing
-License
-Acknowledgements
-Features
-FEATURE	DESCRIPTION
-Model selection	Choose any Ollama model exposed on your local machine.
-Chat‑based code generation	Ask the model to create, modify, or explain code snippets.
-Project context	Persist a conversation history that the model can reference.
-File management	Create, edit, delete, and rename files in a virtual project tree.
-Live preview	Render the current HTML/CSS/JS in an embedded iframe.
-Export	Download the entire project as a ZIP archive.
-CORS‑free	All API requests are routed through a local Python proxy that adds the necessary CORS headers.
-Architecture
 
 
-Copy block
-
-
-┌───────────────────────┐
-│  Browser (index.html) │
-│  • UI (Vanilla JS)    │
-│  • api/proxy/generate │
-└─────────────┬─────────┘
-              │
-              ▼
-┌───────────────────────┐
-│  Local Python Proxy   │
-│  • http.server +      │
-│    socketserver       │
-│  • Adds CORS headers  │
-│  • Forwards to Ollama │
-└─────────────┬─────────┘
-              │
-              ▼
-┌───────────────────────┐
-│   (localhost:11434)   │
-└───────────────────────┘
-
----
 
 ## Prerequisites
 
@@ -105,14 +31,15 @@ Copy block
 |-------------|-----------------|
 | **Web Browser** | Chrome / Edge / Firefox (latest) |
 | **Ollama** | 0.1.0+ (any model you want to use) |
-| **Python**	3.8+	python3 --version |
+| **Python**	| 3.8+	python --version |
 
 > **Tip** – Ollama can be installed locally with a single command:  
 > ```bash
 > curl -fsSL https://ollama.ai/install.sh | sh
 > ```
 
----
+
+
 
 ## Installation & Running
 
@@ -138,9 +65,12 @@ Copy block
 
 > **Note** – Because the app uses `fetch` to talk to `http://localhost:11434`, you must run it from a web server for the API calls to work.
 
----
+
+
+
 
 ## Usage
+
 
 ### Chat Panel
 
@@ -153,21 +83,25 @@ Copy block
 > The chat starts with a default greeting from the assistant.  
 > Every message is appended to the chat history and displayed with the assistant’s response.
 
+
 ### Code Panel
 
 * **Tabs** – Switch between `index.html` (single file) or `index.html / style.css / script.js` (multi‑file).  
 * **Settings** – Opens the *Settings Panel* to change file mode, project name, etc.  
 * **Export** – Downloads the current project.  
 
+
 ### Preview Panel
 
 * **Live Preview** – The iframe automatically updates when the code changes.    
+
 
 ### Context Panel
 
 * **Project Requirements** – Write a short description of what the project should accomplish.  
 * **Include Code Context** – When checked, the current code is sent to the AI with every request.  
 * **Clear / Save** – Persist or reset the context.
+
 
 ### Settings Panel
 
@@ -180,9 +114,11 @@ Copy block
 
 > Settings are saved to `localStorage` and applied immediately.
 
----
+
+
 
 ## Configuration
+
 
 ### Ollama Server
 
@@ -196,6 +132,7 @@ If your server is elsewhere, change the **Ollama URL** in the Settings panel.
 }
 ```
 
+
 ### File Mode
 
 * **Single File Mode** – All HTML, CSS, and JS are embedded in `index.html`.  
@@ -208,7 +145,8 @@ If your server is elsewhere, change the **Ollama URL** in the Settings panel.
 * **System Prompt** – The default prompt tells the AI to output a complete, functional web page.  
   Feel free to modify it to suit your workflow.
 
----
+
+
 
 ## Exporting Projects
 
@@ -216,7 +154,8 @@ If your server is elsewhere, change the **Ollama URL** in the Settings panel.
 * **Multi‑File** – Downloads `index.html`, `style.css`, and `script.js` (each as separate files).  
   The export logic can be extended to a ZIP archive if needed.
 
----
+
+
 
 ## How It Works
 
@@ -232,7 +171,8 @@ If your server is elsewhere, change the **Ollama URL** in the Settings panel.
 4. **Preview Update** – Whenever the editor changes, the iframe’s `srcdoc` is updated to render the current code.  
 5. **Context & Settings** – Stored in `localStorage`; changes immediately affect subsequent requests.
 
----
+
+
 
 ## Contribution Guidelines
 
@@ -244,14 +184,16 @@ If your server is elsewhere, change the **Ollama URL** in the Settings panel.
 **Code Style** – Vanilla JS, CSS, and HTML.  
 **Testing** – Manual testing is sufficient for now; add unit tests if you wish.  
 
----
+
+
 
 ## License
 
 MIT © 2025 [Petr Piskáček]  
 See the [LICENSE](LICENSE) file for details.
 
----
+
+
 
 ## Acknowledgements
 
@@ -259,8 +201,8 @@ See the [LICENSE](LICENSE) file for details.
 * **Vanilla JS** – keeping the app lightweight and easy to run.  
 * **Open Source Community** – for inspiring this project.
 
----
+
+
 
 Happy coding!
 
----
