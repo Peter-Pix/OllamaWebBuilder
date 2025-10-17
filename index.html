@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web App Prototyper</title>
+    <style>
+        /* CSS Variables for Dark Theme */
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #c9d1d9;
+            --accent-primary: #5b3588;
+            --accent-secondary: #4f2e75;
+            --border-radius: 8px;
+            --border-color: #30363d;
+            --font-mono: 'Fira Code', 'Roboto Mono', 'Consolas', monospace;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+		#refreshModels {
+			display:none;
+		}
+		#settingsBtn {
+			background: var(--bg-primary);
+		}
+		::-webkit-scrollbar {
+		  display: none;
+		}
+
+        body {
+            font-family: var(--font-mono);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .panel {
+            background-color: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .code-panel {
+            flex: 1.5;
+            min-width: 400px;
+        }
+
+        .preview-panel {
+            flex: 1.5;
+            min-width: 400px;
+        }
+
+        /* Panel Headers */
+        .panel-header {
+            background-color: var(--bg-tertiary);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Chat Panel Styles */
+        .model-selector {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .model-select {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 6px 10px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+           /*    padding: 12px 16px;
+            border-radius: var(--border-radius);
+            max-width: 85%;
+            white-space: pre-wrap; */  
+        }
+
+        .user-message {
+          /*    background-color: var(--accent-secondary); */   
+            align-self: flex-end;
+        }
+
+        .assistant-message {
+         /* background-color: var(--bg-tertiary); */  
+            align-self: flex-start;
+			font-size: 12px;
+        }
+
+        .chat-input-container {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .chat-input {
+            width: 100%;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 12px;
+            font-family: var(--font-mono);
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .chat-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+
+        /* Button Styles */
+        .btn {
+            background-color: var(--accent-primary);
+            color: var(--text-primary);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 8px 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-secondary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border-color);
+        }
+
+        /* Code Panel Styles */
+        .code-tabs {
+            display: flex;
+            background-color: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-tab {
+            padding: 10px 16px;
+            background: none;
+            border: none;
+            color:  #7e7e7e;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .code-tab.active {
+            color: #b7b5b5;
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .code-editor {
+            flex: 1;
+            padding: 0;
+            position: relative;
+        }
+
+        .code-textarea {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: none;
+            padding: 16px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            resize: none;
+            outline: none;
+            line-height: 1.4;
+        }
+
+        /* Preview Panel Styles */
+        .preview-container {
+            flex: 1;
+            padding: 0;
+            position: relative;
+        }
+
+        .preview-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: white;
+        }
+
+        .preview-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100%;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            transition: right 0.3s ease;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .settings-section {
+            margin-bottom: 24px;
+        }
+
+        .settings-title {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--accent-primary);
+        }
+
+        .settings-option {
+            margin-bottom: 16px;
+        }
+
+        .settings-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .settings-input, .settings-textarea {
+            width: 100%;
+            padding: 8px 12px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-family: var(--font-mono);
+        }
+
+        .settings-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .settings-checkbox {
+            margin-right: 8px;
+        }
+
+        .settings-actions {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Overlay for settings */
+        .settings-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
+        }
+
+        .settings-overlay.active {
+            display: block;
+        }
+
+        /* Context Panel */
+        .context-panel {
+            position: fixed;
+            top: 0;
+            left: -400px;
+            width: 400px;
+            height: 100%;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            transition: left 0.3s ease;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .context-panel.open {
+            left: 0;
+        }
+
+        .context-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .context-actions {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background-color: var(--accent-secondary);
+            color: var(--text-primary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .panel {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Chat Panel -->
+        <div class="panel chat-panel">
+            <div class="panel-header">
+                <div class="panel-title">AI Model</div>
+                <div class="model-selector">
+                    <select class="model-select" id="modelSelect">
+                        <option value="">Select a model</option>
+                    </select>
+                    <button class="btn btn-secondary" id="refreshModels">Refresh</button>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant-message">
+                    Hello! I'm your AI assistant. I can help you build web applications. What would you like to create today?
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <textarea class="chat-input" id="chatInput" placeholder="Type your message here..."></textarea>
+                <div class="chat-actions">
+                    <button class="btn btn-secondary" id="contextBtn">Set Context</button>
+                    <button class="btn btn-secondary" id="saveChat">Save Chat</button>
+                    <button class="btn" id="sendMessage">Send Message</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Panel -->
+        <div class="panel code-panel">
+            <div class="panel-header">
+                <div class="panel-title" id="codePanelTitle">Code Editor (Single File)</div>
+                <div>
+                    <button class="btn btn-secondary" id="settingsBtn">Settings</button>
+                    <button class="btn" id="exportBtn">Export Project</button>
+                </div>
+            </div>
+            <div class="code-tabs" id="codeTabs">
+                <button class="code-tab active" data-tab="single">index.html</button>
+            </div>
+            <div class="code-editor">
+                <textarea class="code-textarea" id="codeEditor" spellcheck="false"></textarea>
+            </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="panel preview-panel">
+            <div class="panel-header">
+                <div class="panel-title">Live Preview</div>
+            </div>
+            <div class="preview-container">
+                <iframe class="preview-iframe" id="previewFrame"></iframe>
+                <div class="preview-actions">
+                    <button class="btn btn-secondary" id="refreshPreview">Refresh</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Panel -->
+    <div class="settings-overlay" id="contextOverlay"></div>
+    <div class="context-panel" id="contextPanel">
+        <div class="panel-header">
+            <div class="panel-title">Project Context</div>
+            <button class="btn btn-secondary" id="closeContext">Close</button>
+        </div>
+        <div class="context-content">
+            <div class="settings-section">
+                <h3 class="settings-title">Project Requirements</h3>
+                <div class="settings-option">
+                    <label class="settings-label">Describe your project requirements and goals:</label>
+                    <textarea class="settings-textarea" id="projectRequirements" placeholder="Enter detailed project requirements, goals, and any specific features you want to include..."></textarea>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3 class="settings-title">Context Options</h3>
+                <div class="settings-option">
+                    <label class="settings-label">
+                        <input type="checkbox" id="includeCodeContext" class="settings-checkbox" checked>
+                        Include current code as context in AI requests
+                    </label>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                        When enabled, the AI will see your current code and can make updates based on it
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="context-actions">
+            <button class="btn btn-secondary" id="clearContext">Clear Context</button>
+            <button class="btn" id="saveContext">Save Context</button>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="settings-overlay" id="settingsOverlay"></div>
+    <div class="settings-panel" id="settingsPanel">
+        <div class="panel-header">
+            <div class="panel-title">Settings</div>
+            <button class="btn btn-secondary" id="closeSettings">Close</button>
+        </div>
+        <div class="settings-content">
+            <div class="settings-section">
+                <h3 class="settings-title">File Mode</h3>
+                <div class="settings-option">
+                    <label class="settings-label">
+                        <input type="radio" name="fileMode" value="single" class="settings-checkbox" checked>
+                        Single File Mode
+                    </label>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                        All code in one HTML file with embedded CSS and JavaScript
+                    </p>
+                </div>
+                <div class="settings-option">
+                    <label class="settings-label">
+                        <input type="radio" name="fileMode" value="multi" class="settings-checkbox">
+                        Multi-File Mode
+                    </label>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                        Separate files for HTML, CSS, and JavaScript
+                    </p>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3 class="settings-title">Project Name</h3>
+                <div class="settings-option">
+                    <input type="text" class="settings-input" id="projectName" value="my-web-app">
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3 class="settings-title">Ollama Configuration</h3>
+                <div class="settings-option">
+                    <label class="settings-label">Ollama Server URL</label>
+                    <input type="text" class="settings-input" id="ollamaUrl" value="http://localhost:11434">
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3 class="settings-title">Advanced Settings</h3>
+                <div class="settings-option">
+                    <label class="settings-label">Custom System Prompt</label>
+                    <textarea class="settings-textarea" id="systemPrompt" placeholder="Enter a custom system prompt for the AI..."></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="settings-actions">
+            <button class="btn btn-secondary" id="resetSettings">Reset to Defaults</button>
+            <button class="btn" id="applySettings">Apply Changes</button>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Application state
+        const state = {
+            currentModel: '',
+            models: [],
+            fileMode: 'single',
+            projectName: 'my-web-app',
+            ollamaUrl: 'http://localhost:11434',
+            projectRequirements: '',
+            includeCodeContext: true,
+            systemPrompt: `You are an expert web developer. Create complete, functional HTML/CSS/JavaScript code based on user requests. Always provide the full code in a single HTML file unless specified otherwise.`,
+            code: {
+                single: `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Web App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to My Web App</h1>
+        <p>Start building your application here!</p>
+        <button id="demoButton">Click Me</button>
+    </div>
+    <script>
+        document.getElementById('demoButton').addEventListener('click', function() {
+            alert('Button clicked!');
+        });
+    <\/script>
+</body>
+</html>`,
+                html: `<div class="container">
+    <h1>Welcome to My Web App</h1>
+    <p>Start building your application here!</p>
+    <button id="demoButton">Click Me</button>
+</div>`,
+                css: `body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+h1 {
+    color: #333;
+}`,
+                js: `document.getElementById('demoButton').addEventListener('click', function() {
+    alert('Button clicked!');
+});`
+            },
+            activeTab: 'single',
+            conversation: []
+        };
+
+        // DOM Elements
+        const elements = {
+            modelSelect: document.getElementById('modelSelect'),
+            refreshModels: document.getElementById('refreshModels'),
+            chatMessages: document.getElementById('chatMessages'),
+            chatInput: document.getElementById('chatInput'),
+            sendMessage: document.getElementById('sendMessage'),
+            saveChat: document.getElementById('saveChat'),
+            codeTabs: document.getElementById('codeTabs'),
+            codeEditor: document.getElementById('codeEditor'),
+            codePanelTitle: document.getElementById('codePanelTitle'),
+            previewFrame: document.getElementById('previewFrame'),
+            refreshPreview: document.getElementById('refreshPreview'),
+            settingsBtn: document.getElementById('settingsBtn'),
+            closeSettings: document.getElementById('closeSettings'),
+            settingsPanel: document.getElementById('settingsPanel'),
+            settingsOverlay: document.getElementById('settingsOverlay'),
+            exportBtn: document.getElementById('exportBtn'),
+            projectName: document.getElementById('projectName'),
+            ollamaUrl: document.getElementById('ollamaUrl'),
+            resetSettings: document.getElementById('resetSettings'),
+            applySettings: document.getElementById('applySettings'),
+            systemPrompt: document.getElementById('systemPrompt'),
+            notification: document.getElementById('notification'),
+            contextBtn: document.getElementById('contextBtn'),
+            contextPanel: document.getElementById('contextPanel'),
+            contextOverlay: document.getElementById('contextOverlay'),
+            closeContext: document.getElementById('closeContext'),
+            projectRequirements: document.getElementById('projectRequirements'),
+            includeCodeContext: document.getElementById('includeCodeContext'),
+            clearContext: document.getElementById('clearContext'),
+            saveContext: document.getElementById('saveContext')
+        };
+
+        // Initialize the application
+        function init() {
+            loadModels();
+            setupEventListeners();
+            updateCodeEditor();
+            updatePreview();
+            
+            // Set default system prompt in textarea
+            elements.systemPrompt.value = state.systemPrompt;
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Chat functionality
+            elements.sendMessage.addEventListener('click', sendMessage);
+            elements.chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    sendMessage();
+                }
+            });
+            elements.saveChat.addEventListener('click', saveChat);
+            elements.refreshModels.addEventListener('click', loadModels);
+            
+            // Code editor functionality
+            elements.codeTabs.addEventListener('click', (e) => {
+                if (e.target.classList.contains('code-tab')) {
+                    switchTab(e.target.dataset.tab);
+                }
+            });
+            elements.codeEditor.addEventListener('input', () => {
+                state.code[state.activeTab] = elements.codeEditor.value;
+                updatePreview();
+            });
+            
+            // Preview functionality
+            elements.refreshPreview.addEventListener('click', updatePreview);
+            
+            // Settings functionality
+            elements.settingsBtn.addEventListener('click', openSettings);
+            elements.closeSettings.addEventListener('click', closeSettings);
+            elements.settingsOverlay.addEventListener('click', closeSettings);
+            elements.applySettings.addEventListener('click', applySettings);
+            elements.resetSettings.addEventListener('click', resetSettings);
+            
+            // Export functionality
+            elements.exportBtn.addEventListener('click', exportProject);
+            
+            // Context functionality
+            elements.contextBtn.addEventListener('click', openContext);
+            elements.closeContext.addEventListener('click', closeContext);
+            elements.contextOverlay.addEventListener('click', closeContext);
+            elements.saveContext.addEventListener('click', saveContext);
+            elements.clearContext.addEventListener('click', clearContext);
+        }
+
+        // Load available models from Ollama
+        async function loadModels() {
+            try {
+                const response = await fetch(`${state.ollamaUrl}/api/tags`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch models');
+                }
+                
+                const data = await response.json();
+                state.models = data.models || [];
+                
+                // Update model select dropdown
+                elements.modelSelect.innerHTML = '<option value="">Select a model</option>';
+                state.models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.name;
+                    option.textContent = model.name;
+                    elements.modelSelect.appendChild(option);
+                });
+                
+                if (state.models.length > 0) {
+                    state.currentModel = state.models[0].name;
+                    elements.modelSelect.value = state.currentModel;
+                }
+                
+                showNotification('Models loaded successfully');
+            } catch (error) {
+                console.error('Error loading models:', error);
+                showNotification('Error loading models. Make sure Ollama is running.', true);
+                
+                // Add some dummy models for testing
+                elements.modelSelect.innerHTML = `
+                    <option value="llama2">llama2</option>
+                    <option value="codellama">codellama</option>
+                    <option value="mistral">mistral</option>
+                `;
+            }
+        }
+
+        // Send message to AI assistant
+        async function sendMessage() {
+            const message = elements.chatInput.value.trim();
+            if (!message) return;
+            
+            if (!state.currentModel) {
+                showNotification('Please select a model first', true);
+                return;
+            }
+            
+            // Add user message to chat
+            addMessageToChat('user', message);
+            elements.chatInput.value = '';
+            
+            try {
+                // Prepare context for the AI
+                let context = state.systemPrompt;
+                
+                // Add project requirements if available
+                if (state.projectRequirements) {
+                    context += `\n\nProject Requirements: ${state.projectRequirements}`;
+                }
+                
+                // Add current code if enabled
+                if (state.includeCodeContext) {
+                    let currentCode = '';
+                    if (state.fileMode === 'single') {
+                        currentCode = state.code.single;
+                    } else {
+                        currentCode = `HTML:\n${state.code.html}\n\nCSS:\n${state.code.css}\n\nJavaScript:\n${state.code.js}`;
+                    }
+                    context += `\n\nCurrent Code:\n${currentCode}`;
+                }
+                
+                // Prepare the request to Ollama
+                const requestBody = {
+                    model: state.currentModel,
+                    prompt: `${context}\n\nUser Request: ${message}`,
+                    stream: false
+                };
+                
+                // Send request directly to Ollama
+                const response = await fetch(`${state.ollamaUrl}/api/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to get response from AI');
+                }
+                
+                const data = await response.json();
+                
+                // Add AI response to chat
+                addMessageToChat('assistant', data.response);
+                
+                // Check if the response contains code and update the editor if it does
+                if (data.response.includes('<!DOCTYPE html>') || data.response.includes('<html>')) {
+                    let code = data.response;
+                    
+                    // Extract code from markdown code blocks if present
+                    const codeBlockMatch = code.match(/```(?:html)?\s*([\s\S]*?)```/);
+                    if (codeBlockMatch) {
+                        code = codeBlockMatch[1];
+                    }
+                    
+                    if (state.fileMode === 'single') {
+                        state.code.single = code;
+                        updateCodeEditor();
+                    } else {
+                        // Parse the single file code and split it
+                        const parsedCode = parseSingleFileCode(code);
+                        state.code.html = parsedCode.html;
+                        state.code.css = parsedCode.css;
+                        state.code.js = parsedCode.js;
+                        updateCodeEditor();
+                    }
+                    updatePreview();
+                }
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                addMessageToChat('assistant', `Error: ${error.message}\n\nMake sure Ollama is running at ${state.ollamaUrl}`);
+            }
+        }
+
+        // Add message to chat UI
+        function addMessageToChat(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}-message`;
+            messageDiv.textContent = content;
+            elements.chatMessages.appendChild(messageDiv);
+            elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+            
+            // Save to conversation history
+            state.conversation.push({ role, content });
+        }
+
+        // Save chat to file
+        function saveChat() {
+            const chatContent = state.conversation
+                .map(msg => `${msg.role.toUpperCase()}: ${msg.content}`)
+                .join('\n\n');
+            
+            const blob = new Blob([chatContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'chat-conversation.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Chat saved successfully');
+        }
+
+        // Switch between code tabs
+        function switchTab(tabName) {
+            // Update active tab UI
+            document.querySelectorAll('.code-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tab === tabName);
+            });
+            
+            // Update code editor content
+            state.activeTab = tabName;
+            updateCodeEditor();
+        }
+
+        // Update code editor based on current tab
+        function updateCodeEditor() {
+            elements.codeEditor.value = state.code[state.activeTab];
+        }
+
+        // Update preview iframe
+        function updatePreview() {
+            let previewContent = '';
+            
+            if (state.fileMode === 'single') {
+                previewContent = state.code.single;
+            } else {
+                previewContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${state.projectName}</title>
+    <style>${state.code.css}</style>
+</head>
+<body>
+    ${state.code.html}
+    <script>${state.code.js}<\/script>
+</body>
+</html>`;
+            }
+            
+            const iframeDoc = elements.previewFrame.contentDocument || 
+                             elements.previewFrame.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(previewContent);
+            iframeDoc.close();
+        }
+
+        // Parse single file code into separate parts
+        function parseSingleFileCode(html) {
+            // Extract CSS from style tags
+            let css = '';
+            const cssMatch = html.match(/<style>([\s\S]*?)<\/style>/);
+            if (cssMatch) {
+                css = cssMatch[1].trim();
+            }
+            
+            // Extract JavaScript from script tags
+            let js = '';
+            const jsMatch = html.match(/<script>([\s\S]*?)<\/script>/);
+            if (jsMatch) {
+                js = jsMatch[1].trim();
+            }
+            
+            // Extract HTML without style and script tags
+            let htmlWithoutStylesAndScripts = html
+                .replace(/<style[\s\S]*?<\/style>/g, '')
+                .replace(/<script[\s\S]*?<\/script>/g, '')
+                .replace(/<!DOCTYPE html>/, '')
+                .replace(/<html[\s\S]*?>/, '')
+                .replace(/<\/html>/, '')
+                .replace(/<head[\s\S]*?<\/head>/, '')
+                .replace(/<body>/, '')
+                .replace(/<\/body>/, '')
+                .trim();
+            
+            return { html: htmlWithoutStylesAndScripts, css, js };
+        }
+
+        // Update code tabs based on file mode
+        function updateCodeTabs() {
+            elements.codeTabs.innerHTML = '';
+            
+            if (state.fileMode === 'single') {
+                elements.codePanelTitle.textContent = 'Code Editor (Single File)';
+                const tab = document.createElement('button');
+                tab.className = 'code-tab active';
+                tab.dataset.tab = 'single';
+                tab.textContent = 'index.html';
+                elements.codeTabs.appendChild(tab);
+                state.activeTab = 'single';
+            } else {
+                elements.codePanelTitle.textContent = 'Code Editor (Multi-File)';
+                const tabs = [
+                    { id: 'html', label: 'index.html' },
+                    { id: 'css', label: 'style.css' },
+                    { id: 'js', label: 'script.js' }
+                ];
+                
+                tabs.forEach(tabInfo => {
+                    const tab = document.createElement('button');
+                    tab.className = `code-tab ${tabInfo.id === 'html' ? 'active' : ''}`;
+                    tab.dataset.tab = tabInfo.id;
+                    tab.textContent = tabInfo.label;
+                    elements.codeTabs.appendChild(tab);
+                });
+                state.activeTab = 'html';
+            }
+            
+            updateCodeEditor();
+        }
+
+        // Open settings panel
+        function openSettings() {
+            elements.settingsPanel.classList.add('open');
+            elements.settingsOverlay.classList.add('active');
+            
+            // Update settings form with current values
+            document.querySelector(`input[name="fileMode"][value="${state.fileMode}"]`).checked = true;
+            elements.projectName.value = state.projectName;
+            elements.ollamaUrl.value = state.ollamaUrl;
+            elements.systemPrompt.value = state.systemPrompt;
+        }
+
+        // Close settings panel
+        function closeSettings() {
+            elements.settingsPanel.classList.remove('open');
+            elements.settingsOverlay.classList.remove('active');
+        }
+
+        // Apply settings changes
+        function applySettings() {
+            const newFileMode = document.querySelector('input[name="fileMode"]:checked').value;
+            const newProjectName = elements.projectName.value;
+            const newOllamaUrl = elements.ollamaUrl.value;
+            const newSystemPrompt = elements.systemPrompt.value;
+            
+            // Handle file mode change
+            if (newFileMode !== state.fileMode) {
+                state.fileMode = newFileMode;
+                
+                if (state.fileMode === 'multi') {
+                    // Parse the single file code and split it
+                    const parsedCode = parseSingleFileCode(state.code.single);
+                    state.code.html = parsedCode.html;
+                    state.code.css = parsedCode.css;
+                    state.code.js = parsedCode.js;
+                } else {
+                    // Merge the separate files into a single HTML file
+                    state.code.single = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${state.projectName}</title>
+    <style>${state.code.css}</style>
+</head>
+<body>
+    ${state.code.html}
+    <script>${state.code.js}<\/script>
+</body>
+</html>`;
+                }
+                
+                updateCodeTabs();
+                updatePreview();
+            }
+            
+            state.projectName = newProjectName;
+            state.ollamaUrl = newOllamaUrl;
+            state.systemPrompt = newSystemPrompt;
+            
+            closeSettings();
+            showNotification('Settings applied successfully');
+        }
+
+        // Reset settings to defaults
+        function resetSettings() {
+            state.fileMode = 'single';
+            state.projectName = 'my-web-app';
+            state.ollamaUrl = 'http://localhost:11434';
+            state.systemPrompt = `You are an expert web developer. Create complete, functional HTML/CSS/JavaScript code based on user requests. Always provide the full code in a single HTML file unless specified otherwise.`;
+            
+            document.querySelector('input[name="fileMode"][value="single"]').checked = true;
+            elements.projectName.value = state.projectName;
+            elements.ollamaUrl.value = state.ollamaUrl;
+            elements.systemPrompt.value = state.systemPrompt;
+            
+            showNotification('Settings reset to defaults');
+        }
+
+        // Export project
+        function exportProject() {
+            if (state.fileMode === 'single') {
+                // Export single HTML file
+                const blob = new Blob([state.code.single], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'index.html';
+                a.click();
+                URL.revokeObjectURL(url);
+            } else {
+                // Create a zip file with all files
+                const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${state.projectName}</title>
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    ${state.code.html}
+    <script src="scripts/script.js"><\/script>
+</body>
+</html>`;
+                
+                // Create HTML file
+                const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+                const htmlUrl = URL.createObjectURL(htmlBlob);
+                const htmlLink = document.createElement('a');
+                htmlLink.href = htmlUrl;
+                htmlLink.download = 'index.html';
+                htmlLink.click();
+                
+                // Create CSS file
+                const cssBlob = new Blob([state.code.css], { type: 'text/css' });
+                const cssUrl = URL.createObjectURL(cssBlob);
+                const cssLink = document.createElement('a');
+                cssLink.href = cssUrl;
+                cssLink.download = 'style.css';
+                cssLink.click();
+                
+                // Create JS file
+                const jsBlob = new Blob([state.code.js], { type: 'text/javascript' });
+                const jsUrl = URL.createObjectURL(jsBlob);
+                const jsLink = document.createElement('a');
+                jsLink.href = jsUrl;
+                jsLink.download = 'script.js';
+                jsLink.click();
+                
+                // Clean up
+                setTimeout(() => {
+                    URL.revokeObjectURL(htmlUrl);
+                    URL.revokeObjectURL(cssUrl);
+                    URL.revokeObjectURL(jsUrl);
+                }, 100);
+            }
+            
+            showNotification('Project exported successfully');
+        }
+
+        // Open context panel
+        function openContext() {
+            elements.contextPanel.classList.add('open');
+            elements.contextOverlay.classList.add('active');
+            
+            // Update context form with current values
+            elements.projectRequirements.value = state.projectRequirements;
+            elements.includeCodeContext.checked = state.includeCodeContext;
+        }
+
+        // Close context panel
+        function closeContext() {
+            elements.contextPanel.classList.remove('open');
+            elements.contextOverlay.classList.remove('active');
+        }
+
+        // Save context
+        function saveContext() {
+            state.projectRequirements = elements.projectRequirements.value;
+            state.includeCodeContext = elements.includeCodeContext.checked;
+            
+            closeContext();
+            showNotification('Context saved successfully');
+        }
+
+        // Clear context
+        function clearContext() {
+            state.projectRequirements = '';
+            elements.projectRequirements.value = '';
+            
+            showNotification('Context cleared');
+        }
+
+        // Show notification
+        function showNotification(message, isError = false) {
+            elements.notification.textContent = message;
+            elements.notification.style.backgroundColor = isError ? '#da3633' : '#238636';
+            elements.notification.classList.add('show');
+            
+            setTimeout(() => {
+                elements.notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
