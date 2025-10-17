@@ -1,0 +1,214 @@
+USER: create a web calculator
+
+ASSISTANT: ```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Calculator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+            color: #fff;
+        }
+
+        #calculator {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #display {
+            width: 200px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #444;
+            color: #fff;
+            text-align: right;
+            font-size: 1.5em;
+            border-radius: 5px;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .button {
+            padding: 15px;
+            margin: 5px;
+            font-size: 1.2em;
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #666;
+        }
+
+        .operator {
+            background-color: #f39c12;
+        }
+
+        .operator:hover {
+            background-color: #e68e14;
+        }
+
+        .equal {
+            background-color: #2ecc71;
+        }
+
+        .equal:hover {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="calculator">
+        <div id="display">0</div>
+
+        <div class="button-row">
+            <button class="button">7</button>
+            <button class="button">8</button>
+            <button class="button">9</button>
+            <button class="button operator">/</button>
+        </div>
+
+        <div class="button-row">
+            <button class="button">4</button>
+            <button class="button">5</button>
+            <button class="button">6</button>
+            <button class="button operator">*</button>
+        </div>
+
+        <div class="button-row">
+            <button class="button">1</button>
+            <button class="button">2</button>
+            <button class="button">3</button>
+            <button class="button operator">-</button>
+        </div>
+
+        <div class="button-row">
+            <button class="button">0</button>
+            <button class="button">.</button>
+            <button class="button equal">=</button>
+            <button class="button operator">+</button>
+        </div>
+        
+        <button class="button" id="clear">Clear</button>
+    </div>
+
+    <script>
+        const display = document.getElementById('display');
+        const buttons = document.querySelectorAll('.button');
+        const clearButton = document.getElementById('clear');
+
+        let currentInput = '';
+        let currentValue = 0;
+        let operator = null;
+
+        function updateDisplay() {
+            display.textContent = currentInput || currentValue;
+        }
+
+        function handleNumberClick(number) {
+            if (currentInput === '0' && number === '0') return;
+            currentInput += number;
+            updateDisplay();
+        }
+
+        function handleOperatorClick(op) {
+            if (currentValue !== 0) {
+                calculate();
+            }
+
+            currentValue = parseFloat(currentInput);
+            operator = op;
+            currentInput = '';
+        }
+
+        function calculate() {
+            if (operator === null || currentInput === '') return;
+
+            const inputNumber = parseFloat(currentInput);
+            let result;
+
+            switch (operator) {
+                case '+':
+                    result = currentValue + inputNumber;
+                    break;
+                case '-':
+                    result = currentValue - inputNumber;
+                    break;
+                case '*':
+                    result = currentValue * inputNumber;
+                    break;
+                case '/':
+                    if (inputNumber === 0) {
+                        result = 'Error';
+                        break;
+                    }
+                    result = currentValue / inputNumber;
+                    break;
+                default:
+                    return;
+            }
+           
+            currentValue = result;
+            currentInput = '';
+            
+            if (isNaN(currentValue)) {
+                currentValue = 0;
+                currentInput = '';
+            }
+
+            if(typeof currentValue === 'string') {
+                currentInput = currentValue;
+                currentValue = 0;
+            }
+            
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentInput = '';
+            currentValue = 0;
+            operator = null;
+            updateDisplay();
+        }
+        
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (isNaN(parseFloat(button.textContent))) {
+                    if (button.textContent === '=') {
+                        calculate();
+                    } else {
+                        handleOperatorClick(button.textContent);
+                    }
+                } else {
+                    handleNumberClick(button.textContent);
+                }
+            });
+        });
+        
+        clearButton.addEventListener('click', clearAll);
+    </script>
+
+</body>
+</html>
+```
